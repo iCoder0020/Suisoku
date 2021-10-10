@@ -1,0 +1,327 @@
+swagger: "2.0"
+info:
+  description: "Suisoku APIs Swagger file."
+  version: "1.0.0"
+  title: "Swagger Suisoku"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "apiteam@swagger.io"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+basePath: "/api"
+tags:
+- name: "settings"
+  description: "Game Settings"
+- name: "player"
+  description: "Player Operations"
+- name: "game"
+  description: "Game Operations"
+schemes:
+- "https"
+- "http"
+paths:
+  /settings/gameModes:
+    get:
+      tags:
+      - "settings"
+      summary: "Gets the supported game modes."
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/GameMode"
+              
+  /settings/gameTypes:
+    get:
+      tags:
+      - "settings"
+      summary: "Gets the supported game types."
+      parameters:
+      - in: "body"
+        name: "gameMode"
+        description: "Game Mode for which we need the game types."
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/GameType"
+              
+  
+  /game/startGame:
+   post:
+      tags:
+      - "game"
+      summary: "Send the selected game type."
+      parameters:
+      - in: "body"
+        name: "gameType"
+        required: true
+        schema:
+          $ref: "#/definitions/GameSettings"
+      responses:
+        "200":
+          description: "Game ID"
+          schema:
+            type: "string"
+            
+  /game/startRound:
+    post:
+      tags:
+      - "game"
+      summary: "Send request to start a new round."
+      parameters:
+      - in: "body"
+        name: "startRoundParameters"
+        required: true
+        schema:
+          $ref: "#/definitions/StartRoundParameters"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/StartRoundResponse"
+            
+  /game/startMove:
+    post:
+      tags:
+      - "game"
+      summary: "Send request to start a new round."
+      parameters:
+      - in: "body"
+        name: "startMoveParameters"
+        required: true
+        schema:
+          $ref: "#/definitions/StartMoveParameters"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/StartMoveResponse"
+        "400":
+          description: "Can't make another move"
+            
+  /game/stats:
+    get:
+      tags:
+      - "game"
+      summary: "Send request to get game stats."
+      parameters:
+      - in: "body"
+        name: "gameId"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/GameStats"
+      
+  /game/word:
+    post:
+      tags:
+      - "game"
+      summary: "Send a word and check if it's a valid word."
+      parameters:
+      - in: "body"
+        name: "word"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Valid"
+          schema:
+            type: "boolean"
+            
+  /player:
+    get:
+      tags:
+      - "player"
+      summary: "Get player details from the username."
+      parameters:
+      - in: "body"
+        name: "username"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Player Details"
+          schema:
+            $ref: "#/definitions/Player"
+    post:
+      tags:
+      - "player"
+      summary: "Send details for a player."
+      parameters:
+      - in: "body"
+        name: "player"
+        required: true
+        schema:
+          $ref: "#/definitions/Player"
+      responses:
+        "200":
+          description: "Player ID"
+          schema:
+            type: "string"
+                
+  /player/stats:
+    get:
+      tags:
+      - "player"
+      summary: "Get player stats from the username."
+      parameters:
+      - in: "body"
+        name: "username"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Player Details"
+          schema:
+            $ref: "#/definitions/PlayerStats"
+definitions:
+  GameMode:
+    type: "object"
+    properties:
+      name: 
+        type: "string"
+      available: 
+        type: "boolean"
+  GameSettings:
+    type: "object"
+    properties:
+      game_mode:
+        $ref: "#/definitions/GameMode"
+      game_type:
+        $ref: "#/definitions/GameType"
+      players:
+        type: "array"
+        items:
+          $ref: "#/definitions/Player"
+  GameStats:
+    type: "object"
+    properties:
+      winner:
+        $ref: "#/definitions/PlayerEnum"
+      round_stats:
+        type: "array"
+        items:
+          $ref: "#/definitions/RoundStats"
+  GameType:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      num_rounds:
+        type: "integer"
+        format: "int64"
+      num_letters:
+        type: "array"
+        items:
+          type: "integer"
+          format: "int64"
+      time_caps:
+        type: "array"
+        items:
+          type: "integer"
+          format: "int64"
+      move_caps:
+        type: "array"
+        items:
+          type: "integer"
+          format: "int64"
+  Player:
+    type: "object"
+    properties:
+      name: 
+        type: "string"
+      username:
+        type: "string"
+      email:
+        type: "string"
+  PlayerEnum:
+    type: "string"
+    enum: ["PLAYER_1", "PLAYER_2"]
+  PlayerStats:
+    type: "object"
+    properties:
+      high_score:
+        type: "number"
+      rounds_won:
+        type: "integer"
+        format: "int64"
+      rounds_count:
+        type: "integer"
+        format: "int64"
+      dominated_by:
+        type: "string"
+      dominating:
+        type: "string"
+  RoundStats:
+    type: "object"
+    properties:
+      winner:
+        $ref: "#/definitions/PlayerEnum"
+      time_taken:
+        type: "integer"
+        format: "int64"
+      scores:
+        type: "array"
+        items:
+          type: "number"
+      num_moves:
+        type: "integer"
+        format: "int64"
+  StartMoveParameters:
+    type: "object"
+    properties:
+      round_id: 
+        type: "string"
+      move_number:
+        type: "integer"
+        format: "int64"
+      guessed_word:
+        type: "string"
+      timestamp:
+        type: "string"
+      player:
+        $ref: "#/definitions/PlayerEnum"
+  StartMoveResponse:
+    type: "object"
+    properties:
+      p:
+        type: "integer"
+        format: "int64"
+      c:
+        type: "integer"
+        format: "int64"
+      round_status:
+        type: "string"
+        enum: ["MOVES_OVER", "TIME_OVER", "IN_PROGRESS", "WORD_GUESSED"]
+  StartRoundParameters:
+    type: "object"
+    properties:
+      gameId: 
+        type: "string"
+      timestamp: 
+        type: "string"
+  StartRoundResponse:
+    type: "object"
+    properties:
+      round_id: 
+        type: "string"
+      correct_word:
+        type: "string"
+      last_round:
+        type: "boolean"
